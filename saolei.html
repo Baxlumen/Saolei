@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+	<title>扫雷</title>
+	<link rel="shortcut icon" href="D:/hh/picture/pangci.png">
+	<style type="text/css">
+		#quxu{
+			border: 5px solid black;
+			width: 800px;
+			height: 800px;
+		}
+		.btn{
+			width: 50px;
+			height: 50px;
+
+		}
+		#myTable{
+			border: 2px solid black;
+			background-color: blue;
+		}
+		p{
+			color: white;
+		}
+		#isSheng{
+			position: absolute;
+			top: 10px;
+			left: 300px;
+			width: 200px;
+			height: 180px;
+			text-align: center; /*水平居中*/
+			line-height: 180px; /* 垂直居中*/
+		}
+		#img{
+			height: 100%;
+			width: 100%;
+		}
+		#playTime{
+			position: absolute;
+			border: 1px solid black;
+			top: 130px;
+			left: 550px;
+			width: 200px;
+			height: 65px;
+		}
+	</style>
+</head>
+<body>
+<div >
+<h5>行：<input type="text" id="hang"></h5>
+<h5>列：<input type="text" id="lie"><h5>
+<h5>雷:<input type="text" id="leiN"><h5>
+<h5><input type="button" value="生成" onclick="sC()"><h5>
+</div>
+<div id="isSheng" >
+	<img src="D:/hh/picture/icon.png" id="img" onclick="reStart(this)">
+</div>
+<div id="playTime">
+	<h1 id="jiShi">计时功能</h1>
+</div>
+<div id="quxu">
+	<table id="myTable">
+		<!-- <tr>
+			<td><input type="button" name="00" class="btn" id="" onclick="openCell(this)" value="00"></td>
+		</tr> -->
+	</table>
+</div>
+</body>
+<script type="text/javascript">
+    var rowA=document.getElementById("myTable");
+    var hang=document.getElementById("hang");
+	var lie=document.getElementById("lie");
+	var leiN=document.getElementById("leiN");
+	// var jiShi=document.getElementById("jiShi");
+	var leiZong;
+	function sC(){	
+		var x=hang.value;	
+		var y=lie.value;		
+		var z=0;//已经生成了多少雷
+		var leitotal=leiN.value;
+		leiZong=leitotal;
+		//console.info(leiZong);
+		 for (var j = 0; j <x; j++) {
+		 	var addh=rowA.insertRow(j);  //这里需要分开写，不能用整体var addh=rowA.insertRow(j).insertCell(k).innerHTML
+			for (var k = 0; k< y; k++) {
+			if (lei()&&z<leitotal) {
+				addh.insertCell(k).innerHTML="<td><input type=\"button\" name=\""+j+k+"L\" class=\"btn\" onclick=\"openCell(this)\" value=\""+j+k+"L\"></td>"
+				z++;
+			}
+			else{
+				addh.insertCell(k).innerHTML="<td><input type=\"button\" name=\""+j+k+"\" class=\"btn\" onclick=\"openCell(this)\" value=\""+j+k+"\"></td>"
+			}				
+				
+	 	}			
+	  }
+	}
+	function openCell(r){		
+		var x=r.name;
+		var tr1=r.parentNode.parentNode;
+		var hangh,lieh;
+		var lei;//这个button周围的雷数
+	
+		if (isNaN(x)) {
+			console.info("踩到雷");
+			// alert("踩到雷啦！！！！！");
+			// window.location.reload();
+		}else{
+			console.info("没踩到");			
+			var rfather=r.parentNode;//r的父节点，即包含button 的td元素
+			//获取元素的所在行列			
+			hangh=tr1.rowIndex;
+			lieh=rfather.cellIndex;	
+			lei=kuosan(hangh,lieh);			
+			r.style.backgroundColor="transparent";
+			r.style.border="0";
+			r.style.color="white";
+			r.value=lei;
+		    isVic();//判断胜负
+		}
+
+	}
+	//点击有雷时，
+	function kuosan(h,l){
+		console.info(h);
+		console.info(l);
+		var leiNum=0;
+		 if (h>0&&l>0&&h<hang.value-1&&l<lie.value-1) { //button非边也非顶点时
+		 	console.info(l+"执行if");
+		 	var btn=rowA.rows[h].cells[l].firstChild;
+		 	btn.disabled=true;
+		 	if (isNaN(rowA.rows[h-1].cells[l].firstChild.name)&&!(rowA.rows[h-1].cells[l].firstChild.disabled)) { //上侧有雷
+		 		leiNum++;
+		 	}else if ((rowA.rows[h-1].cells[l].firstChild.disabled)) {
+		 		//不执行任何操作
+		 	}
+		 	else{
+		 		var linJie=rowA.rows[h-1].cells[l].firstChild; //相邻的button		 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h-1,l);		 						
+		 	}
+		 	if (isNaN(rowA.rows[h+1].cells[l].firstChild.name)&&!(rowA.rows[h+1].cells[l].firstChild.disabled)) { //下侧有雷
+		 		leiNum++;
+		 	}else if ((rowA.rows[h+1].cells[l].firstChild.disabled)) {
+		 		//不执行任何操作
+		 	}
+		 	else  {
+		 		var linJie=rowA.rows[h+1].cells[l].firstChild; //相邻的button		 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h+1,l);
+		 	}
+		 	if (isNaN(rowA.rows[h].cells[l-1].firstChild.name)&&!(rowA.rows[h].cells[l-1].firstChild.disabled)) { //左侧有雷
+		 		leiNum++;
+		 	}
+		 	else if ((rowA.rows[h].cells[l-1].firstChild.disabled)) {
+		 		//不执行任何操作
+		 	}
+		 	else  {
+		 		var linJie=rowA.rows[h].cells[l-1].firstChild; //相邻的button
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h,l-1);
+		 	}
+		 	if (isNaN(rowA.rows[h].cells[l+1].firstChild.name)&&!(rowA.rows[h].cells[l+1].firstChild.disabled)) { //右侧有雷
+		 		leiNum++;
+		 	}
+		 	else if ((rowA.rows[h].cells[l+1].firstChild.disabled)) {
+		 		//不执行任何操作
+		 	}
+		 	else {
+		 		var linJie=rowA.rows[h].cells[l+1].firstChild; //相邻的button	 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h,l+1);
+		 		//leiNum+=kuosan(h,l+1);
+		 	}
+		 	if (isNaN(rowA.rows[h-1].cells[l-1].firstChild.name)) { //左上侧有雷
+		 		leiNum++;
+		 	}else  {
+		 	
+		 	}
+		 	if (isNaN(rowA.rows[h-1].cells[l+1].firstChild.name)) { //右上有雷
+		 		leiNum++;
+		 	}else  {
+		 	
+		 	}
+		 	if (isNaN(rowA.rows[h+1].cells[l-1].firstChild.name)) { //左下侧有雷
+		 		leiNum++;
+		 	}else  {
+		 	
+		 		
+		 	}
+		 	if (isNaN(rowA.rows[h+1].cells[l+1].firstChild.name)) { //右下侧有雷
+		 		leiNum++;
+		 	}else  {	 	
+		 	}
+		 }
+		 else if (h==0&&l==0){ //左上角	
+		 console.info(l+"执行此左上角elseif");	
+		 var btn=rowA.rows[h].cells[l].firstChild;
+		 	btn.disabled=true;  	
+		  		if (isNaN(rowA.rows[h].cells[l+1].firstChild.name)&&!(rowA.rows[h].cells[l+1].firstChild.disabled)) { //01处
+		  				leiNum++;
+		  		}
+		  		else if ((rowA.rows[h].cells[l+1].firstChild.disabled)) {
+		 		//不执行任何操作		 	
+		 	}
+		  		else{
+		  		var linJie=rowA.rows[h].cells[l+1].firstChild; //相邻的button		 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h,l+1);	
+		  		}
+		  		if (isNaN(rowA.rows[h+1].cells[l].firstChild.name)&&!(rowA.rows[h+1].cells[l].firstChild.disabled)) { //10处
+		 		leiNum++;
+		 	   }else if ((rowA.rows[h+1].cells[l].firstChild.disabled)) {
+		 		//不执行任何操作		 	
+		 	  }
+			 	else{
+		 		var linJie=rowA.rows[h+1].cells[l].firstChild; //相邻的button		 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h+1,l);	
+		 	}
+		 		if (isNaN(rowA.rows[h+1].cells[l+1].firstChild.name)) { //11处
+		 		leiNum++;
+		 	}else {
+		 		
+		 	}	
+		  }
+		  else if (h==0&&l==lie.value-1) { //右上角		  	
+		  	console.info("执行此elseif");
+		  	var btn=rowA.rows[h].cells[l].firstChild;
+		 	btn.disabled=true;
+		  	if (isNaN(rowA.rows[h].cells[l-1].firstChild.name)&&!(rowA.rows[h].cells[l-1].firstChild.disabled)) { //左侧有雷(第一行的倒数第二个)
+		 		leiNum++;
+		 	}
+		 	else if ((rowA.rows[h].cells[l-1].firstChild.disabled)) {
+		 		//不执行任何操作		 	
+		 	}
+		 	else  {
+		 		var linJie=rowA.rows[h].cells[l-1].firstChild; //相邻的button		 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h,l-1);	
+		 		//leiNum+=kuosan(h-1,l);
+		 	}
+		 	if (isNaN(rowA.rows[h+1].cells[l].firstChild.name)&&!(rowA.rows[h+1].cells[l].firstChild.disabled)) { //下侧有雷(第二行的最后一个)
+		 		leiNum++;
+		 	}
+		 	else if ((rowA.rows[h+1].cells[l].firstChild.disabled)) {
+		 		//不执行任何操作		 	
+		 	}
+		 	else  {
+		 		var linJie=rowA.rows[h+1].cells[l].firstChild; //相邻的button		 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h+1,l);	
+		 		//leiNum+=kuosan(h,l+1);
+		 	}
+		 	if (isNaN(rowA.rows[h+1].cells[l-1].firstChild.name)) { //左下有雷（第二行的倒数第二个）
+		 		leiNum++;
+		 	}else  {
+		 		//leiNum+=kuosan(h-1,l+1);
+		 	}
+
+		  }
+		   else if (h==(hang.value-1)&&l==0) { //左下角
+		   	console.info("执行左下elseif");
+		   	var btn=rowA.rows[h].cells[l].firstChild;
+		 	btn.disabled=true;
+		   	if (isNaN(rowA.rows[h-1].cells[l].firstChild.name)&&!(rowA.rows[h-1].cells[l].firstChild.disabled)) { //上侧有雷
+		 		leiNum++;
+		 	}
+		 	else if ((rowA.rows[h-1].cells[l].firstChild.disabled)) {
+		 		//不执行任何操作		 	
+		 	}
+		 	else  {
+		 		var linJie=rowA.rows[h-1].cells[l].firstChild; //相邻的button		 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h-1,l);	
+		 		//leiNum+=kuosan(h-1,l);
+		 	}
+		 	if (isNaN(rowA.rows[h].cells[l+1].firstChild.name)&&!(rowA.rows[h].cells[l+1].firstChild.disabled)) { //右侧有雷
+		 		leiNum++;
+		 	}
+		 	else if ((rowA.rows[h].cells[l+1].firstChild.disabled)) {
+		 		//不执行任何操作		 	
+		 	}
+		 	else  {
+		 		var linJie=rowA.rows[h].cells[l+1].firstChild; //相邻的button		 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h,l+1);	
+		 		//leiNum+=kuosan(h,l+1);
+		 	}
+		 	if (isNaN(rowA.rows[h-1].cells[l+1].firstChild.name)) { //右上有雷
+		 		leiNum++;
+		 	}else  {
+		 		//leiNum+=kuosan(h-1,l+1);
+		 	}
+		   }
+		   else if (h==(hang.value-1)&&l==lie.value-1) { //右下角
+		   		console.info(l+"执行右下elseif");
+		   		var btn=rowA.rows[h].cells[l].firstChild;
+		 	btn.disabled=true;
+		   	if (isNaN(rowA.rows[h-1].cells[l].firstChild.name)&&!(rowA.rows[h-1].cells[l].firstChild.disabled)) { //上侧有雷
+		 		leiNum++;
+		 	}
+		 	else if ((rowA.rows[h-1].cells[l].firstChild.disabled)) {
+		 		//不执行任何操作		 	
+		 	}
+		 	else  {
+		 		var linJie=rowA.rows[h-1].cells[l].firstChild; //相邻的button		 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h-1,l);	
+		 		//leiNum+=kuosan(h-1,l);
+		 	}
+		 	if (isNaN(rowA.rows[h].cells[l-1].firstChild.name)&&!(rowA.rows[h].cells[l-1].firstChild.disabled)) { //左侧有雷
+		 		leiNum++;
+		 	}
+		 	else if ((rowA.rows[h].cells[l-1].firstChild.disabled)) {
+		 		//不执行任何操作		 	
+		 	}
+		 	else  {
+				var linJie=rowA.rows[h].cells[l-1].firstChild; //相邻的button		 		
+		 		linJie.disabled=true;
+				linJie.style.backgroundColor="transparent";
+				linJie.style.border="0";
+				linJie.style.color="white";
+				linJie.value=kuosan(h,l-1);	
+		 		//leiNum+=kuosan(h,l-1);
+		 	}
+		 	if (isNaN(rowA.rows[h-1].cells[l-1].firstChild.name)) { //左上侧有雷
+		 		leiNum++;
+		 	}else  {
+		 		
+		 	}
+		 }
+
+		       //第一行非顶点
+		 	else if (h==0&&l>0&&l<lie.value-1) { 
+		 		var btn=rowA.rows[h].cells[l].firstChild;
+		 	btn.disabled=true;
+		 		if (isNaN(rowA.rows[h+1].cells[l].firstChild.name)&&!(rowA.rows[h+1].cells[l].firstChild.disabled)) { //下侧有雷
+		 			leiNum++;
+		 		}
+		 		else if (rowA.rows[h+1].cells[l].firstChild.disabled) {
+		 			//不执行任何操作	
+		 		}
+		 		else {
+		 			var linJie=rowA.rows[h+1].cells[l].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h+1,l);	
+		 		//leiNum+=kuosan(h+1,l);
+		 		}
+		 		if (isNaN(rowA.rows[h].cells[l-1].firstChild.name)&&!(rowA.rows[h].cells[l-1].firstChild.disabled)) { //左侧有雷
+		 			leiNum++;
+		 		}
+		 		else if (rowA.rows[h].cells[l-1].firstChild.disabled) {
+
+		 		}
+		 		else  {
+		 			var linJie=rowA.rows[h].cells[l-1].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h,l-1);	
+		 		//leiNum+=kuosan(h,l-1);
+		 		}
+		 		if (isNaN(rowA.rows[h].cells[l+1].firstChild.name)&&!(rowA.rows[h].cells[l+1].firstChild.disabled)) { //右侧有雷
+		 			leiNum++;
+		 		}
+		 		else if(rowA.rows[h].cells[l+1].firstChild.disabled){
+
+		 		} 
+		 		else  {
+		 			var linJie=rowA.rows[h].cells[l+1].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h,l+1);	
+		 		//leiNum+=kuosan(h,l+1);
+		 		}
+		 		if (isNaN(rowA.rows[h+1].cells[l-1].firstChild.name)) { //左下侧有雷
+		 			leiNum++;
+		 		}else  {
+		 		//leiNum+=kuosan(h+1,l-1);
+		 		}
+		 		if (isNaN(rowA.rows[h+1].cells[l+1].firstChild.name)) { //右下侧有雷
+		 			leiNum++;
+		 		}else  {
+		 		//leiNum+=kuosan(h+1,l+1);
+		 		}
+		 	}
+		 	else if (h>0&&l==0&&h<hang.value-1) { //第一列非顶点元素
+		 		var btn=rowA.rows[h].cells[l].firstChild;
+		 	btn.disabled=true;
+		 		if (isNaN(rowA.rows[h-1].cells[l].firstChild.name)&&!(rowA.rows[h-1].cells[l].firstChild.disabled)) { //上侧有雷
+		 			leiNum++;
+		 		}
+		 		else if (rowA.rows[h-1].cells[l].firstChild.disabled) {
+
+		 		}
+		 		else  {
+		 			var linJie=rowA.rows[h-1].cells[l].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h-1,l);	
+		 		//leiNum+=kuosan(h-1,l);
+		 		}
+		 		if (isNaN(rowA.rows[h+1].cells[l].firstChild.name)&&!(rowA.rows[h+1].cells[l].firstChild.disabled)) { //下侧有雷
+		 			leiNum++;
+		 		}
+		 		else if (rowA.rows[h+1].cells[l].firstChild.disabled){
+
+		 		}else  {
+		 			var linJie=rowA.rows[h+1].cells[l].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h+1,l);	
+		 		//leiNum+=kuosan(h+1,l);
+		 		}
+		 		if (isNaN(rowA.rows[h].cells[l+1].firstChild.name)&&!(rowA.rows[h].cells[l+1].firstChild.disabled)) { //右侧有雷
+		 			leiNum++;
+		 		}
+		 		else if (rowA.rows[h].cells[l+1].firstChild.disabled) {
+
+		 		}
+		 		else  {
+		 			var linJie=rowA.rows[h].cells[l+1].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h,l+1);	
+		 		//leiNum+=kuosan(h,l+1);
+		 		}
+		 		if (isNaN(rowA.rows[h-1].cells[l+1].firstChild.name)) { //右上有雷
+		 			leiNum++;
+		 		}else  {
+		 		//leiNum+=kuosan(h-1,l+1);
+		 		}
+		 		if (isNaN(rowA.rows[h+1].cells[l+1].firstChild.name)) { //右下侧有雷
+		 			leiNum++;
+		 		}else  {
+		 		//leiNum+=kuosan(h+1,l+1);
+		 		}
+		 	}
+		 	else if (h==hang.value-1&&l>0&&l<lie.value-1) { //最后一行非顶点
+		 		var btn=rowA.rows[h].cells[l].firstChild;
+		 	btn.disabled=true;
+		 		if (isNaN(rowA.rows[h-1].cells[l].firstChild.name)&&!(rowA.rows[h-1].cells[l].firstChild.disabled)) { //上侧有雷
+		 		 	leiNum++;
+		 		}
+		 		else if (rowA.rows[h-1].cells[l].firstChild.disabled) {
+
+		 		}
+		 		else  {
+		 			var linJie=rowA.rows[h-1].cells[l].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h-1,l);	
+		 		//leiNum+=kuosan(h-1,l);
+		 		}
+				if (isNaN(rowA.rows[h].cells[l-1].firstChild.name)&&!(rowA.rows[h].cells[l-1].firstChild.disabled)) { //左侧有雷
+		 			leiNum++;
+		 		}
+		 		else if (rowA.rows[h].cells[l-1].firstChild.disabled) {
+
+		 		}
+		 		else  {
+		 			var linJie=rowA.rows[h].cells[l-1].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h,l-1);	
+		 		//leiNum+=kuosan(h,l-1);
+		 		}
+		 		if (isNaN(rowA.rows[h].cells[l+1].firstChild.name)&&!(rowA.rows[h].cells[l+1].firstChild.disabled)) { //右侧有雷
+		 			leiNum++;
+		 		}
+		 		else if (rowA.rows[h].cells[l+1].firstChild.disabled) {
+
+		 		}	
+		 		else  {
+		 			var linJie=rowA.rows[h].cells[l+1].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h,l+1);	
+		 		//leiNum+=kuosan(h,l+1);
+		 		}
+		 		if (isNaN(rowA.rows[h-1].cells[l-1].firstChild.name)) { //左上侧有雷
+		 			leiNum++;
+		 		}else  {
+		 		//leiNum+=kuosan(h-1,l-1);
+		 		}
+		 		if (isNaN(rowA.rows[h-1].cells[l+1].firstChild.name)) { //右上有雷
+		 			leiNum++;
+		 		}else  {
+		 		//leiNum+=kuosan(h-1,l+1);
+		 		}
+		 	}
+		 	else if (h>0&&l==lie.value-1&&h<hang.value-1) { //最后一列非顶点
+		 		var btn=rowA.rows[h].cells[l].firstChild;
+		 	    btn.disabled=true;
+		 		if (isNaN(rowA.rows[h-1].cells[l].firstChild.name)&&!(rowA.rows[h-1].cells[l].firstChild.disabled)) { //上侧有雷
+		 			leiNum++;
+		 		}
+		 		else if (rowA.rows[h-1].cells[l].firstChild.disabled) {
+
+		 		}
+		 		else  {
+		 			var linJie=rowA.rows[h-1].cells[l].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h-1,l);	
+		 		//leiNum+=kuosan(h-1,l);
+		 		}
+		 		if (isNaN(rowA.rows[h+1].cells[l].firstChild.name)&&!(rowA.rows[h+1].cells[l].firstChild.disabled)) { //下侧有雷
+		 			leiNum++;
+		 		}
+		 		else if (rowA.rows[h+1].cells[l].firstChild.disabled) {}
+		 		else  {
+		 			var linJie=rowA.rows[h+1].cells[l].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h+1,l);	
+		 		//leiNum+=kuosan(h+1,l);
+		 		}
+		 		if (isNaN(rowA.rows[h].cells[l-1].firstChild.name)&&!(rowA.rows[h].cells[l-1].firstChild.disabled)) { //左侧有雷
+		 			leiNum++;
+		 		}
+		 		else if (rowA.rows[h].cells[l-1].firstChild.disabled) {}
+		 		else  {
+		 			var linJie=rowA.rows[h].cells[l-1].firstChild; //相邻的button		 		
+		 			linJie.disabled=true;
+					linJie.style.backgroundColor="transparent";
+					linJie.style.border="0";
+					linJie.style.color="white";
+					linJie.value=kuosan(h,l-1);	
+		 		//leiNum+=kuosan(h,l-1);
+		 		}
+				if (isNaN(rowA.rows[h-1].cells[l-1].firstChild.name)) { //左上侧有雷
+		 			leiNum++;
+		 		}else  {
+		 		//leiNum+=kuosan(h-1,l-1);
+		 		}
+				if (isNaN(rowA.rows[h+1].cells[l-1].firstChild.name)) { //左下侧有雷
+		 			leiNum++;
+		 		}else  {
+		 		//leiNum+=kuosan(h+1,l-1);
+		 		}
+		 	}
+		 	else{
+		 		return 0;
+		 	}		    
+		 return leiNum;
+	}
+	function lei(){
+		var r=Math.random();
+		if (r<0.5) {
+			return true;//有雷
+		}
+		else{
+			return false;//没雷
+		}		
+	}
+	function isVic(){
+		var x=hang.value;	
+		var y=lie.value;
+		var z=0;	
+		 for (var i =0 ; i < x; i++) {
+			for (var j =  0; j < y; j++){
+				if(!(rowA.rows[i].cells[j].firstChild.disabled)){ //没有雷，且被扫描过
+					z++;					
+				}
+             }		 	
+		 }
+		 if(z!=leiZong){
+			console.info("继续");
+			}
+			else{
+			 victory();
+			}
+	}
+	function victory(){
+		var image=document.getElementById("img");
+		image.src="D:/hh/picture/a3.jpg"
+	}
+	function reStart(image){
+		
+	}
+	// function playT(){
+	// 	var time=0;
+	// 	time+=1;
+	// 	t=setTimeout("playT()",1000);
+	// 	jiShi.innerHTML=time;
+
+	// }
+</script>
+</html>
